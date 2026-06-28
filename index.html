@@ -692,7 +692,10 @@ function renderAdminSchedule() {
       <td style="font-size:12px;color:var(--text2);">${teacherNames}</td>
       <td>${c.docsLink?`<a href="${c.docsLink}" target="_blank" class="badge badge-blue">열기</a>`:'<span class="badge badge-gray">없음</span>'}</td>
       <td><span class="badge ${c.attendance==='출석'?'badge-green':c.attendance?'badge-red':'badge-gray'}">${c.attendance||'-'}</span></td>
-      <td><button class="btn btn-outline btn-sm" onclick="openClassModal('${c.id}')">수정</button></td>
+      <td style="display:flex;gap:4px;flex-wrap:nowrap;">
+        <button class="btn btn-outline btn-sm" onclick="openClassModal('${c.id}')">수정</button>
+        <button class="btn btn-sm" style="background:var(--red-light);color:var(--red);border:1px solid var(--red-light);" onclick="deleteClass('${c.id}')">삭제</button>
+      </td>
     </tr>`;
   });
   h += `</tbody></table></div>`;
@@ -815,6 +818,19 @@ function saveTeacher() {
     statusEl.textContent = `✓ ${name} 등록 완료. 이제 ${email} 계정으로 로그인하면 선생님 화면이 열립니다.`;
     setTimeout(()=>{ closeModal('modal-teacher'); renderPage('admin'); setTimeout(()=>adminTab('teachers'),0); }, 1200);
   }
+}
+
+async function deleteClass(classId) {
+  const c = CLASSES.find(x=>x.id===classId);
+  if (!c) return;
+  const s = getStudent(c.studentId);
+  const label = `${fmtFull(c.datetime)} · ${s.name||'(학생미정)'} ${c.type==='interview'?'[3대1 면접]':'[1대1 수업]'}`;
+  if (!confirm(`수업을 삭제하시겠습니까?\n\n${label}\n\n삭제 후 복구할 수 없습니다.`)) return;
+  const { doc, deleteDoc } = window._firestoreOps;
+  await deleteDoc(doc(window._db, 'classes', classId));
+  CLASSES = CLASSES.filter(x=>x.id!==classId);
+  renderPage('admin');
+  setTimeout(()=>adminTab('schedule'),0);
 }
 
 function deleteTeacher(teacherId) {
