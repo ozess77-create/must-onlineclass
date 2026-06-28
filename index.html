@@ -388,7 +388,8 @@ const INTERVIEW_MEET = 'https://meet.google.com/interview-room-must';
 const DEFAULT_TEACHERS = [];  // Firestore에서 로드
 let TEACHERS = [];
 
-const ADMINS = ['ozess77@gmail.com'];
+let ADMINS = ['ozess77@gmail.com']; // Firestore에서 로드 후 갱신
+const SUPER_ADMIN = 'ozess77@gmail.com'; // 삭제 불가 최고 관리자
 const ADMIN_PIN = 'mustadmin2025';
 let adminPinVerified = false;
 
@@ -684,6 +685,7 @@ function renderAdmin() {
     <button class="tab" id="tab-students" onclick="adminTab('students')">학생 관리</button>
     <button class="tab" id="tab-teachers" onclick="adminTab('teachers')">선생님 관리</button>
     <button class="tab" id="tab-notices" onclick="adminTab('notices')">공지사항</button>
+    <button class="tab" id="tab-admins" onclick="adminTab('admins')">관리자</button>
   </div>
   <div id="admin-content"></div>`;
 }
@@ -695,7 +697,8 @@ function adminTab(tab) {
   if (tab==='schedule') c.innerHTML = renderAdminSchedule();
   else if (tab==='students') c.innerHTML = renderAdminStudents();
   else if (tab==='teachers') c.innerHTML = renderAdminTeachers();
-  else c.innerHTML = renderAdminNotices();
+  else if (tab==='notices') c.innerHTML = renderAdminNotices();
+  else c.innerHTML = renderAdminAdmins();
 }
 
 function renderAdminSchedule() {
@@ -903,6 +906,49 @@ function renderAdminNotices() {
   return h + '</div>';
 }
 
+function renderAdminAdmins() {
+  let h = `<div class="card">
+    <div class="card-title">관리자 계정 목록</div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:14px;">아래 이메일로 구글 로그인 시 관리자 화면에 접근할 수 있습니다.</p>
+    <div style="margin-bottom:16px;">`;
+  ADMINS.forEach(email => {
+    const isSuper = email === SUPER_ADMIN;
+    h += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:13px;">${email} ${isSuper?'<span class="badge badge-purple" style="font-size:10px;">최고관리자</span>':''}</span>
+      ${isSuper ? '' : `<button class="btn btn-sm" style="background:var(--red-light);color:var(--red);border:1px solid var(--red-light);" onclick="deleteAdmin('${email}')">삭제</button>`}
+    </div>`;
+  });
+  h += `</div>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <input type="email" id="new-admin-email" placeholder="추가할 구글 이메일 입력" style="flex:1;" onkeydown="if(event.key==='Enter')addAdmin()" />
+      <button class="btn btn-primary btn-sm" onclick="addAdmin()">+ 추가</button>
+    </div>
+    <p id="admin-email-msg" style="font-size:12px;min-height:18px;margin-top:6px;"></p>
+  </div>`;
+  return h;
+}
+
+async function addAdmin() {
+  const email = document.getElementById('new-admin-email').value.trim().toLowerCase();
+  const msg = document.getElementById('admin-email-msg');
+  if (!email || !email.includes('@')) { msg.style.color='var(--red)'; msg.textContent='올바른 이메일을 입력하세요.'; return; }
+  if (ADMINS.includes(email)) { msg.style.color='var(--amber)'; msg.textContent='이미 등록된 관리자입니다.'; return; }
+  const { doc, setDoc } = window._firestoreOps;
+  await setDoc(doc(window._db, 'admins', email), { email, addedAt: new Date().toISOString() });
+  ADMINS.push(email);
+  document.getElementById('new-admin-email').value = '';
+  msg.style.color='var(--green)'; msg.textContent=`✓ ${email} 관리자 추가 완료`;
+  setTimeout(()=>adminTab('admins'), 800);
+}
+
+async function deleteAdmin(email) {
+  if (!confirm(`"${email}"을 관리자에서 삭제하시겠습니까?`)) return;
+  const { doc, deleteDoc } = window._firestoreOps;
+  await deleteDoc(doc(window._db, 'admins', email));
+  ADMINS = ADMINS.filter(e => e !== email);
+  adminTab('admins');
+}
+
 // ══════════════════════════════════════════
 //  모달
 // ══════════════════════════════════════════
@@ -1064,6 +1110,13 @@ async function loadAllData() {
     // 공지
     const nSnap = await getDocs(collection(db, 'notices'));
     NOTICES = nSnap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b)=>b.date.localeCompare(a.date));
+    // 관리자 목록
+    const aSnap = await getDocs(collection(db, 'admins'));
+    if (!aSnap.empty) {
+      const emails = aSnap.docs.map(d => d.id);
+      if (!emails.includes(SUPER_ADMIN)) emails.unshift(SUPER_ADMIN);
+      ADMINS = emails;
+    }
   } catch(e) {
     console.error('데이터 로드 오류:', e);
   }
