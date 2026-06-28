@@ -550,6 +550,7 @@ function renderStudent() {
             ${c.docsLink?`<a href="${c.docsLink}" target="_blank" style="color:var(--accent)">자소서 문서</a>`:''}
           </div>
         </div>
+        <div class="class-actions">${getMeetBtn(c, '수업 입장하기 →')}</div>
       </div>`;
     });
   }
@@ -637,6 +638,7 @@ function renderTeacher() {
           <div class="class-time">${fmtFull(c.datetime)} · ${student.name} ${typeBadge(c.type)}</div>
           <div class="class-meta"><span>${student.school}</span></div>
         </div>
+        <div class="class-actions">${getMeetBtn(c, '입장')}</div>
       </div>`;
     });
   }
