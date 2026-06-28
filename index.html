@@ -254,6 +254,21 @@
   <div class="app-body" id="app-body"></div>
 </div>
 
+<!-- ══ 관리자 PIN 인증 ══ -->
+<div class="modal-overlay" id="modal-admin-pin" style="display:none;z-index:300;">
+  <div class="modal" style="width:360px;text-align:center;">
+    <div style="font-size:28px;margin-bottom:12px;">🔐</div>
+    <div class="modal-title" style="text-align:center;">관리자 인증</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:20px;">관리자 PIN을 입력하세요.</p>
+    <input type="password" id="admin-pin-input" placeholder="PIN 번호 입력" style="text-align:center;font-size:18px;letter-spacing:6px;margin-bottom:8px;" onkeydown="if(event.key==='Enter')verifyAdminPin()" />
+    <p id="admin-pin-error" style="color:var(--red);font-size:12px;min-height:18px;margin-bottom:12px;"></p>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-outline" style="flex:1;" onclick="adminPinCancel()">취소 (로그아웃)</button>
+      <button class="btn btn-primary" style="flex:1;" onclick="verifyAdminPin()">확인</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ 모달: 수업 등록/수정 ══ -->
 <div class="modal-overlay" id="modal-class" style="display:none">
   <div class="modal">
@@ -374,6 +389,8 @@ const DEFAULT_TEACHERS = [];  // Firestore에서 로드
 let TEACHERS = [];
 
 const ADMINS = ['ozess77@gmail.com'];
+const ADMIN_PIN = '1234'; // ← 여기서 PIN 변경 가능
+let adminPinVerified = false;
 
 let STUDENTS = [];  // Firestore에서 로드
 
@@ -407,6 +424,7 @@ async function login() {
 async function logout() {
   await window._signOut(window._auth);
   currentUser = null;
+  adminPinVerified = false;
   STUDENTS = []; CLASSES = []; NOTICES = []; TEACHERS = [...DEFAULT_TEACHERS];
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
@@ -421,9 +439,16 @@ function getRole() {
 }
 
 function initApp() {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
   const role = getRole();
+  if (role === 'admin' && !adminPinVerified) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('modal-admin-pin').style.display = 'flex';
+    setTimeout(() => document.getElementById('admin-pin-input').focus(), 100);
+    return;
+  }
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('modal-admin-pin').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
   document.getElementById('header-name').textContent = currentUser.name;
   document.getElementById('header-email').textContent = currentUser.email;
   const badge = document.getElementById('role-badge');
@@ -818,6 +843,28 @@ function saveTeacher() {
     statusEl.textContent = `✓ ${name} 등록 완료. 이제 ${email} 계정으로 로그인하면 선생님 화면이 열립니다.`;
     setTimeout(()=>{ closeModal('modal-teacher'); renderPage('admin'); setTimeout(()=>adminTab('teachers'),0); }, 1200);
   }
+}
+
+function verifyAdminPin() {
+  const input = document.getElementById('admin-pin-input').value;
+  if (input === ADMIN_PIN) {
+    adminPinVerified = true;
+    document.getElementById('admin-pin-input').value = '';
+    document.getElementById('admin-pin-error').textContent = '';
+    initApp();
+  } else {
+    document.getElementById('admin-pin-error').textContent = '❌ PIN이 올바르지 않습니다.';
+    document.getElementById('admin-pin-input').value = '';
+    document.getElementById('admin-pin-input').focus();
+  }
+}
+
+function adminPinCancel() {
+  adminPinVerified = false;
+  document.getElementById('modal-admin-pin').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  adminPinVerified = false;
+  window._signOut(window._auth);
 }
 
 async function deleteClass(classId) {
