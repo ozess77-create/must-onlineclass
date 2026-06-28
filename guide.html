@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MUST 특목입시센터 · 온라인 수업 이용 안내</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+  :root {
+    --bg:#F7F6F3; --surface:#FFFFFF; --surface2:#F0EEE9;
+    --border:#E2DED7;
+    --text:#1A1917; --text2:#6B6860; --text3:#9E9C97;
+    --accent:#1A56DB; --accent-light:#EFF6FF;
+    --green:#059669; --green-light:#ECFDF5;
+    --amber:#D97706; --amber-light:#FFFBEB;
+    --red:#DC2626; --red-light:#FEF2F2;
+    --purple:#7C3AED; --purple-light:#F5F3FF;
+    --teal:#0891B2; --teal-light:#F0FDFF;
+    --radius:12px;
+    --shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md:0 4px 8px rgba(0,0,0,0.08),0 2px 4px rgba(0,0,0,0.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.7;}
+
+  /* 헤더 */
+  .header{background:#0F172A;padding:20px 24px;display:flex;align-items:center;gap:16px;}
+  .header-title{color:white;font-size:16px;font-weight:700;letter-spacing:-0.3px;}
+  .header-sub{color:rgba(255,255,255,0.5);font-size:12px;margin-top:2px;}
+  .header-badge{background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.8);font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;}
+
+  /* 레이아웃 */
+  .container{max-width:780px;margin:0 auto;padding:32px 24px 60px;}
+
+  /* 섹션 */
+  .section{margin-bottom:40px;}
+  .section-title{font-size:18px;font-weight:700;letter-spacing:-0.3px;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+  .section-title .num{width:28px;height:28px;background:var(--accent);color:white;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+
+  /* 카드 */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow);margin-bottom:12px;}
+  .card-title{font-size:12px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;}
+
+  /* 역할 카드 */
+  .role-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:0;}
+  .role-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);text-align:center;}
+  .role-icon{font-size:28px;margin-bottom:10px;}
+  .role-name{font-size:14px;font-weight:700;margin-bottom:6px;}
+  .role-desc{font-size:12px;color:var(--text2);line-height:1.6;}
+  .badge{display:inline-block;font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;margin-bottom:8px;}
+  .badge-blue{background:var(--accent-light);color:var(--accent);}
+  .badge-green{background:var(--green-light);color:var(--green);}
+  .badge-purple{background:var(--purple-light);color:var(--purple);}
+  .badge-teal{background:var(--teal-light);color:var(--teal);}
+
+  /* 스텝 */
+  .steps{display:flex;flex-direction:column;gap:12px;}
+  .step{display:flex;gap:14px;align-items:flex-start;}
+  .step-num{width:26px;height:26px;background:var(--accent);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px;}
+  .step-num.green{background:var(--green);}
+  .step-num.teal{background:var(--teal);}
+  .step-num.purple{background:var(--purple);}
+  .step-body{}
+  .step-title{font-size:14px;font-weight:600;margin-bottom:3px;}
+  .step-desc{font-size:13px;color:var(--text2);line-height:1.6;}
+
+  /* 구분선 */
+  .divider{height:1px;background:var(--border);margin:20px 0;}
+
+  /* 인포 박스 */
+  .info-box{border-radius:10px;padding:14px 16px;font-size:13px;line-height:1.7;margin-bottom:12px;}
+  .info-blue{background:var(--accent-light);border-left:3px solid var(--accent);color:#1e3a8a;}
+  .info-green{background:var(--green-light);border-left:3px solid var(--green);color:#065f46;}
+  .info-amber{background:var(--amber-light);border-left:3px solid var(--amber);color:#92400e;}
+  .info-teal{background:var(--teal-light);border-left:3px solid var(--teal);color:#164e63;}
+  .info-box strong{font-weight:700;}
+
+  /* 수업 유형 */
+  .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .type-card{border-radius:var(--radius);padding:20px;border:1.5px solid;}
+  .type-1on1{background:var(--accent-light);border-color:var(--accent);}
+  .type-interview{background:var(--teal-light);border-color:var(--teal);}
+  .type-label{font-size:13px;font-weight:700;margin-bottom:6px;}
+  .type-1on1 .type-label{color:var(--accent);}
+  .type-interview .type-label{color:var(--teal);}
+  .type-detail{font-size:12px;color:var(--text2);line-height:1.6;}
+
+  /* 버튼 예시 */
+  .btn-demo{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9px;font-size:13px;font-weight:500;cursor:default;font-family:'Noto Sans KR',sans-serif;margin:2px;}
+  .btn-demo.meet{background:#059669;color:white;}
+  .btn-demo.interview{background:var(--teal);color:white;}
+  .btn-demo.edit{background:var(--surface);color:var(--text);border:1px solid var(--border);}
+  .btn-demo.delete{background:var(--red-light);color:var(--red);border:1px solid var(--red-light);}
+
+  /* 목록 */
+  ul.guide-list{padding-left:18px;display:flex;flex-direction:column;gap:7px;}
+  ul.guide-list li{font-size:13px;color:var(--text2);line-height:1.6;}
+  ul.guide-list li strong{color:var(--text);}
+
+  /* 주의사항 */
+  .caution{background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:14px 16px;font-size:13px;color:#991B1B;line-height:1.7;}
+
+  /* 뒤로가기 */
+  .back-btn{display:inline-flex;align-items:center;gap:6px;color:rgba(255,255,255,0.6);font-size:13px;text-decoration:none;font-weight:500;}
+  .back-btn:hover{color:white;}
+
+  /* 푸터 */
+  .footer{text-align:center;padding:28px;font-size:12px;color:var(--text3);}
+
+  @media(max-width:640px){
+    .container{padding:20px 16px 48px;}
+    .role-grid{grid-template-columns:1fr;}
+    .type-grid{grid-template-columns:1fr;}
+    .section-title{font-size:16px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- 헤더 -->
+<div class="header">
+  <div style="flex:1;">
+    <div class="header-title">MUST 특목입시센터 · 온라인 수업 이용 안내</div>
+    <div class="header-sub">자소서·면접 1대1 온라인 수업 플랫폼 사용 가이드</div>
+  </div>
+  <a href="index.html" class="back-btn">← 플랫폼으로 이동</a>
+</div>
+
+<div class="container">
+
+  <!-- 1. 플랫폼 소개 -->
+  <div class="section">
+    <div class="section-title"><span class="num">1</span>플랫폼 소개</div>
+    <div class="card">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">
+        MUST 특목입시센터 온라인 수업 플랫폼은 <strong style="color:var(--text);">자소서·면접 1대1 수업</strong>과 <strong style="color:var(--text);">3대1 모의면접</strong>을 관리하는 전용 공간입니다.<br>
+        구글 계정으로 로그인하면 역할(학생·선생님·관리자)에 맞는 화면이 자동으로 열립니다.
+      </p>
+      <div class="role-grid">
+        <div class="role-card">
+          <div class="role-icon">🎓</div>
+          <div class="badge badge-blue">학생</div>
+          <div class="role-name">학생 화면</div>
+          <div class="role-desc">내 수업 일정 확인<br>선생님 피드백 열람<br>수업 입장하기</div>
+        </div>
+        <div class="role-card">
+          <div class="role-icon">👨‍🏫</div>
+          <div class="badge badge-green">선생님</div>
+          <div class="role-name">선생님 화면</div>
+          <div class="role-desc">담당 학생 수업 확인<br>출석 체크<br>피드백 작성</div>
+        </div>
+        <div class="role-card">
+          <div class="role-icon">⚙️</div>
+          <div class="badge badge-purple">관리자</div>
+          <div class="role-name">관리자 화면</div>
+          <div class="role-desc">수업 등록·수정·삭제<br>학생·선생님 관리<br>공지사항 등록</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 로그인 방법 -->
+  <div class="section">
+    <div class="section-title"><span class="num">2</span>로그인 방법</div>
+    <div class="card">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">플랫폼 접속</div>
+            <div class="step-desc">관리자로부터 받은 링크로 접속하세요. 검정 배경의 로그인 화면이 나타납니다.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">구글 계정으로 로그인</div>
+            <div class="step-desc"><strong>「구글 계정으로 시작하기」</strong> 버튼을 누르면 구글 로그인 팝업이 열립니다.<br>관리자에게 등록된 구글 계정(Gmail)으로 로그인하세요.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">역할 자동 판별</div>
+            <div class="step-desc">로그인 후 내 이메일에 따라 역할이 자동으로 결정됩니다.<br>
+              &nbsp;• 관리자 이메일 → 관리자 화면<br>
+              &nbsp;• 선생님으로 등록된 이메일 → 선생님 화면<br>
+              &nbsp;• 학생으로 등록된 이메일 → 학생 화면
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="info-box info-amber">
+        <strong>⚠ 로그인이 안 되거나 화면이 이상한가요?</strong><br>
+        관리자에게 내 구글 계정 이메일을 학생 또는 선생님으로 등록해 달라고 요청하세요.
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 수업 시작하기 -->
+  <div class="section">
+    <div class="section-title"><span class="num">3</span>수업 시작하기 (수업 입장)</div>
+
+    <div class="info-box info-blue" style="margin-bottom:16px;">
+      <strong>수업은 Google Meet으로 진행됩니다.</strong><br>
+      플랫폼에서 「수업 입장하기 →」 버튼을 누르면 해당 수업의 Google Meet 방이 바로 열립니다.
+    </div>
+
+    <div class="type-grid" style="margin-bottom:16px;">
+      <div class="type-card type-1on1">
+        <div class="type-label">📚 1대1 수업</div>
+        <div class="type-detail">
+          담당 선생님 전용 Meet 링크로 입장합니다.<br>
+          학생과 선생님 각 1명이 참여합니다.
+        </div>
+      </div>
+      <div class="type-card type-interview">
+        <div class="type-label">🎤 3대1 모의면접</div>
+        <div class="type-detail">
+          면접 전용 공용 Meet 링크로 입장합니다.<br>
+          학생 1명 + 면접관 선생님 3명이 참여합니다.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">학생 — 수업 입장 순서</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">로그인 후 내 화면 확인</div>
+            <div class="step-desc">로그인하면 오늘 수업이 있을 경우 상단에 파란색(1대1) 또는 청록색(면접) 카드로 강조 표시됩니다.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">「수업 입장하기 →」 버튼 클릭</div>
+            <div class="step-desc">오늘 수업 카드에 있는 초록색 버튼을 누르면 Google Meet이 새 탭으로 열립니다.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Google Meet에서 수업 진행</div>
+            <div class="step-desc">카메라·마이크를 켜고 선생님이 입장하면 수업을 시작합니다.<br>
+            수업 자료(구글 닥스)는 화면 하단 「자료 열기」 링크에서 확인하세요.</div>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px;">
+        <span style="font-size:12px;color:var(--text3);">버튼 예시</span>
+        <span class="btn-demo meet">수업 입장하기 →</span>
+        <span class="btn-demo interview">면접 입장하기 →</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">선생님 — 수업 입장 순서</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num green">1</div>
+          <div class="step-body">
+            <div class="step-title">로그인 후 오늘 수업 확인</div>
+            <div class="step-desc">선생님 화면에 오늘 수업 목록이 표시됩니다. 수업 건수와 담당 학생을 확인하세요.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num green">2</div>
+          <div class="step-body">
+            <div class="step-title">「내 수업방 입장」 버튼 클릭</div>
+            <div class="step-desc">상단 통계 영역의 「내 수업방 입장」 버튼을 누르면 내 전용 Google Meet 방이 열립니다.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num green">3</div>
+          <div class="step-body">
+            <div class="step-title">수업 후 출석·피드백 입력</div>
+            <div class="step-desc">수업이 끝나면 수업 카드의 「피드백·출석」 버튼을 눌러 출석 여부와 피드백을 입력하세요.<br>
+            입력한 내용은 학생 화면에 즉시 반영됩니다.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 관리자 기능 -->
+  <div class="section">
+    <div class="section-title"><span class="num">4</span>관리자 기능</div>
+
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-title">수업 등록</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num purple">1</div>
+          <div class="step-body">
+            <div class="step-title">「+ 수업 등록」 버튼 클릭</div>
+            <div class="step-desc">관리자 화면 → 수업 일정 탭에서 우측 상단의 버튼을 누릅니다.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num purple">2</div>
+          <div class="step-body">
+            <div class="step-title">수업 정보 입력</div>
+            <div class="step-desc">
+              수업 유형 선택 (1대1 수업 / 3대1 모의면접)<br>
+              학생 선택 → 선생님 선택 (면접은 복수 선택)<br>
+              수업 일시 입력 → 구글 닥스 링크 입력 (선택)
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num purple">3</div>
+          <div class="step-body">
+            <div class="step-title">「저장」 버튼 클릭</div>
+            <div class="step-desc">저장하면 학생·선생님 화면에 즉시 반영됩니다.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-title">수업 수정 · 삭제</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">수업 일정 테이블에서 각 수업 행 오른쪽의 버튼으로 수정하거나 삭제할 수 있습니다.</p>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;">
+        <span class="btn-demo edit">수정</span>
+        <span style="font-size:12px;color:var(--text3);">수업 정보(일시, 학생, 선생님 등) 변경</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <span class="btn-demo delete">삭제</span>
+        <span style="font-size:12px;color:var(--text3);">수업 완전 삭제 (확인 팝업 후 진행)</span>
+      </div>
+      <div class="divider"></div>
+      <div class="caution">
+        <strong>⚠ 삭제 주의</strong><br>
+        삭제된 수업은 복구할 수 없습니다. 삭제 전 반드시 확인하세요.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">학생 · 선생님 등록</div>
+      <ul class="guide-list">
+        <li><strong>학생 등록</strong>: 수업 일정 탭 옆 「학생」 탭 → 「+ 학생 등록」 → 이름·이메일·목표학교·담당선생님 입력</li>
+        <li><strong>선생님 등록</strong>: 「선생님」 탭 → 「+ 선생님 등록」 → 이름·이메일·Google Meet 링크 입력</li>
+        <li>등록한 이메일로 로그인하면 해당 역할의 화면이 자동으로 열립니다.</li>
+        <li>담당 학생이나 수업이 있는 선생님은 삭제할 수 없습니다. 먼저 학생을 재배정하세요.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 5. 자주 묻는 질문 -->
+  <div class="section">
+    <div class="section-title"><span class="num">5</span>자주 묻는 질문</div>
+
+    <div class="card">
+      <div style="display:flex;flex-direction:column;gap:18px;">
+
+        <div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:5px;">Q. 로그인했는데 빈 화면이 나와요.</div>
+          <div class="info-box info-amber" style="margin:0;">
+            관리자에게 내 구글 이메일이 학생 또는 선생님으로 등록되어 있는지 확인해 달라고 요청하세요.
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:5px;">Q. 수업 입장 버튼이 안 보여요.</div>
+          <div class="info-box info-blue" style="margin:0;">
+            오늘 날짜에 등록된 수업이 없으면 버튼이 나타나지 않습니다. 「예정 수업」 섹션에서 수업 일정을 확인하거나 관리자에게 문의하세요.
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:5px;">Q. Google Meet에 입장이 안 돼요.</div>
+          <div class="info-box info-green" style="margin:0;">
+            팝업 차단 설정을 해제하거나, 버튼 옆 링크를 직접 복사해서 주소창에 붙여넣기 하세요.<br>
+            또는 Google Meet 앱(모바일)을 사용해도 됩니다.
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:5px;">Q. 피드백이 안 보여요.</div>
+          <div class="info-box info-teal" style="margin:0;">
+            수업 후 선생님이 피드백을 입력해야 학생 화면에 보입니다. 선생님에게 입력 완료 여부를 확인하세요.
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:5px;">Q. 수업 자료(구글 닥스)가 없어요.</div>
+          <div class="info-box info-amber" style="margin:0;">
+            관리자가 수업 등록 시 구글 닥스 링크를 입력하지 않은 경우입니다. 관리자에게 링크 추가를 요청하세요.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 문의 -->
+  <div class="section">
+    <div class="section-title"><span class="num">6</span>문의</div>
+    <div class="card">
+      <p style="font-size:13px;color:var(--text2);">
+        플랫폼 사용 중 문제가 생기면 <strong style="color:var(--text);">MUST 특목입시센터 관리자(ozess77@gmail.com)</strong>에게 문의해 주세요.
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  © 2026 MUST 특목입시센터(수학의아침 입시전략연구소) · 온라인 수업 플랫폼
+</div>
+
+</body>
+</html>
