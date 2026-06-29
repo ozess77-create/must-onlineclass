@@ -445,6 +445,15 @@ function isAlsoTeacher() {
 function initApp() {
   const role = getRole();
   currentViewRole = role;
+  // 관리자는 로그인 시 PIN 필수
+  if (role === 'admin' && !adminPinVerified) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-pin-input').value = '';
+    document.getElementById('admin-pin-error').textContent = '';
+    document.getElementById('modal-admin-pin').style.display = 'flex';
+    setTimeout(() => document.getElementById('admin-pin-input').focus(), 100);
+    return;
+  }
   showApp(role);
 }
 
@@ -513,6 +522,7 @@ function typeBadge(type) {
 
 function getMeetLink(cls) {
   if (cls.type === 'interview') return INTERVIEW_MEET;
+  if (!cls.teacherIds || cls.teacherIds.length === 0) return '#';
   const t = getTeacher(cls.teacherIds[0]);
   return t.meetLink || '#';
 }
@@ -530,7 +540,7 @@ function renderStudent() {
   const student = STUDENTS.find(s => s.email === currentUser.email);
   if (!student) return '<div class="empty-state">등록된 학생 정보가 없습니다. 원장선생님께 문의해 주세요.</div>';
 
-  const teacher = getTeacher(student.teacherId);
+  const teacher = getTeacher(student.teacherId) || {};
   const myClasses = CLASSES.filter(c=>c.studentId===student.id).sort((a,b)=>new Date(a.datetime)-new Date(b.datetime));
   const todayClasses = myClasses.filter(c=>isToday(c.datetime));
   const upcoming = myClasses.filter(c=>!isPast(c.datetime)&&!isToday(c.datetime));
@@ -544,12 +554,12 @@ function renderStudent() {
     todayClasses.forEach(c => {
       const isInterview = c.type === 'interview';
       const hlClass = isInterview ? 'highlight-interview' : 'highlight-1on1';
-      const panelNames = isInterview ? c.teacherIds.map(id=>getTeacher(id).name).join(', ') : teacher.name;
+      const panelNames = isInterview ? c.teacherIds.map(id=>{const t=getTeacher(id);return t?t.name:'(미정)';}).join(', ') : (teacher.name||'-');
       const typeLabel = isInterview ? '3대1 모의면접' : '1대1 수업';
       h += `<div class="today-highlight ${hlClass} section-gap">
         <div class="today-info">
           <h3>오늘 ${typeLabel} ${fmtDate(c.datetime)}</h3>
-          <p>${isInterview ? '면접관: '+panelNames : '담당: '+teacher.name}</p>
+          <p>${isInterview ? '면접관: '+panelNames : '담당: '+(teacher.name||'-')}</p>
         </div>
         ${getMeetBtn(c, '수업 입장하기 →')}
       </div>`;
@@ -566,7 +576,7 @@ function renderStudent() {
     h += `<div class="card-title" style="margin-bottom:10px;">예정 수업</div>`;
     upcoming.forEach(c => {
       const isInterview = c.type==='interview';
-      const panelNames = isInterview ? c.teacherIds.map(id=>getTeacher(id).name).join(', ') : getTeacher(c.teacherIds[0]).name;
+      const panelNames = isInterview ? c.teacherIds.map(id=>{const t=getTeacher(id);return t?t.name:'(미정)';}).join(', ') : (()=>{const t=getTeacher(c.teacherIds&&c.teacherIds[0]);return t?t.name:'-';})();
       h += `<div class="class-card">
         <div class="class-info">
           <div class="class-time">${fmtFull(c.datetime)} ${typeBadge(c.type)}</div>
@@ -584,7 +594,7 @@ function renderStudent() {
     h += `<div class="card-title" style="margin:20px 0 10px;">지난 수업 & 피드백</div>`;
     past.forEach(c => {
       const isInterview = c.type==='interview';
-      const panelNames = isInterview ? c.teacherIds.map(id=>getTeacher(id).name).join(', ') : getTeacher(c.teacherIds[0]).name;
+      const panelNames = isInterview ? c.teacherIds.map(id=>{const t=getTeacher(id);return t?t.name:'(미정)';}).join(', ') : (()=>{const t=getTeacher(c.teacherIds&&c.teacherIds[0]);return t?t.name:'-';})();
       h += `<div class="class-card">
         <div class="class-info">
           <div class="class-time">${fmtFull(c.datetime)} ${typeBadge(c.type)}</div>
@@ -640,7 +650,7 @@ function renderTeacher() {
         <div class="class-info">
           <div class="class-time">${fmtDate(c.datetime)} · ${student.name} ${typeBadge(c.type)}</div>
           <div class="class-meta"><span>${student.school}</span>
-            ${isInterview?`<span>면접관: ${c.teacherIds.map(id=>getTeacher(id).name).join(', ')}</span>`:''}
+            ${isInterview?`<span>면접관: ${c.teacherIds.map(id=>{const t=getTeacher(id);return t?t.name:'(미정)';}).join(', ')}</span>`:''}
             ${c.docsLink?`<a href="${c.docsLink}" target="_blank" style="color:var(--accent)">자소서 문서</a>`:''}
           </div>
         </div>
@@ -738,7 +748,7 @@ function renderAdminSchedule() {
     <tbody>`;
   sorted.forEach(c => {
     const s = getStudent(c.studentId);
-    const teacherNames = c.teacherIds.map(id=>getTeacher(id).name).join(', ');
+    const teacherNames = (c.teacherIds||[]).map(id=>{const t=getTeacher(id);return t?t.name:'(미정)';}).join(', ');
     h += `<tr>
       <td>${typeBadge(c.type)}</td>
       <td style="white-space:nowrap;font-weight:500;">${fmtFull(c.datetime)}</td>
@@ -844,6 +854,13 @@ function saveTeacher() {
     statusEl.style.background = 'var(--red-light)';
     statusEl.style.color = 'var(--red)';
     statusEl.textContent = '이름과 이메일을 입력하세요.';
+    return;
+  }
+  if (meetLink && !meetLink.startsWith('https://meet.google.com/')) {
+    statusEl.style.display = 'block';
+    statusEl.style.background = 'var(--red-light)';
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = '미트 링크는 https://meet.google.com/ 으로 시작해야 합니다.';
     return;
   }
 
@@ -1025,11 +1042,14 @@ function saveClass() {
   const studentId = document.getElementById('f-student').value;
   const datetime = document.getElementById('f-datetime').value;
   const docsLink = document.getElementById('f-docs').value;
+  if (!studentId) { alert('학생을 선택하세요.'); return; }
   if (!datetime) { alert('수업 일시를 입력하세요.'); return; }
 
   let teacherIds;
   if (selectedType==='1on1') {
-    teacherIds = [document.getElementById('f-teacher').value];
+    const tid = document.getElementById('f-teacher').value;
+    if (!tid) { alert('담당 선생님을 선택하세요.'); return; }
+    teacherIds = [tid];
   } else {
     teacherIds = TEACHERS.map(t=>t.id).filter(id=>{
       const el = document.getElementById('chk-'+id);
@@ -1050,7 +1070,7 @@ function saveClass() {
   } else {
     CLASSES.push(classData);
   }
-  saveClassToFirestore(classData).catch(console.error);
+  saveClassToFirestore(classData).catch(e=>{ console.error(e); alert('저장 중 오류가 발생했습니다. 네트워크 연결을 확인해주세요.'); });
   closeModal('modal-class');
   renderPage('admin');
   setTimeout(()=>adminTab('schedule'),0);
@@ -1068,6 +1088,8 @@ function saveStudent() {
   const school=document.getElementById('s-school').value.trim();
   const teacherId=document.getElementById('s-teacher').value;
   if (!name||!email) { alert('이름과 이메일을 입력하세요.'); return; }
+  if (!email.includes('@')) { alert('올바른 이메일 형식을 입력하세요.'); return; }
+  if (STUDENTS.find(s => s.email === email)) { alert('이미 등록된 학생 이메일입니다.'); return; }
   const studentData = {id:'s'+Date.now(), name, email, school, teacherId};
   STUDENTS.push(studentData);
   saveStudentToFirestore(studentData).catch(console.error);
@@ -1079,6 +1101,7 @@ function saveStudent() {
 function openFeedback(classId) {
   feedbackClassId = classId;
   const c = CLASSES.find(x=>x.id===classId);
+  if (!c) { alert('수업 정보를 찾을 수 없습니다.'); return; }
   const s = getStudent(c.studentId);
   document.getElementById('feedback-class-info').textContent = fmtFull(c.datetime)+' · '+s.name+' '+(c.type==='interview'?'[3대1 면접]':'[1대1 수업]');
   document.getElementById('f-feedback').value = c.feedback||'';
