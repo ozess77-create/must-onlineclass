@@ -348,14 +348,19 @@
 <!-- ══ 모달: 학생 등록 ══ -->
 <div class="modal-overlay" id="modal-student" style="display:none">
   <div class="modal">
-    <div class="modal-title">학생 등록</div>
+    <div class="modal-title" id="modal-student-title">학생 등록</div>
     <div class="form-group"><label class="form-label">학생 이름</label><input type="text" id="s-name" placeholder="홍길동"></div>
     <div class="form-group"><label class="form-label">구글 이메일</label><input type="email" id="s-email" placeholder="student@gmail.com"></div>
     <div class="form-group"><label class="form-label">목표 학교</label><input type="text" id="s-school" placeholder="한국외국어대학교부설고등학교"></div>
     <div class="form-group"><label class="form-label">기본 담당 선생님</label><select id="s-teacher"></select></div>
+    <div class="form-group">
+      <label class="form-label">자소서 첨삭 문서 (구글 닥스 공유 링크)</label>
+      <input type="url" id="s-essay" placeholder="https://docs.google.com/document/d/...">
+      <div style="font-size:11px;color:var(--text3);margin-top:4px;">구글 닥스 → 공유 → '링크가 있는 모든 사용자 편집 가능'으로 설정 후 링크 복사. 학생·선생님이 같은 문서에서 첨삭합니다.</div>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-outline btn-sm" onclick="closeModal('modal-student')">취소</button>
-      <button class="btn btn-primary btn-sm" onclick="saveStudent()">등록</button>
+      <button class="btn btn-primary btn-sm" id="s-save-btn" onclick="saveStudent()">등록</button>
     </div>
   </div>
 </div>
@@ -402,6 +407,7 @@ let NOTICES = [];  // Firestore에서 로드
 let currentUser = null;
 let editingClassId = null;
 let editingTeacherId = null;
+let editingStudentId = null;
 let feedbackClassId = null;
 let selectedType = '1on1';
 
@@ -549,6 +555,17 @@ function renderStudent() {
   let h = `<div class="page-title">안녕하세요, ${student.name} 학생!</div>
   <div class="page-sub">목표: ${student.school} · 담당: ${teacher.name||'-'}</div>`;
 
+  // 자소서 첨삭 문서
+  if (student.essayDoc) {
+    h += `<div class="card section-gap" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div>
+        <div class="card-title" style="margin-bottom:4px;">📝 자소서 첨삭 문서</div>
+        <div style="font-size:13px;color:var(--text2);">선생님과 함께 실시간으로 첨삭하는 문서입니다.</div>
+      </div>
+      <a href="${student.essayDoc}" target="_blank" class="btn btn-primary btn-sm" style="white-space:nowrap;">문서 열기 →</a>
+    </div>`;
+  }
+
   // 오늘 수업 하이라이트
   if (todayClasses.length > 0) {
     todayClasses.forEach(c => {
@@ -651,7 +668,8 @@ function renderTeacher() {
           <div class="class-time">${fmtDate(c.datetime)} · ${student.name} ${typeBadge(c.type)}</div>
           <div class="class-meta"><span>${student.school}</span>
             ${isInterview?`<span>면접관: ${c.teacherIds.map(id=>{const t=getTeacher(id);return t?t.name:'(미정)';}).join(', ')}</span>`:''}
-            ${c.docsLink?`<a href="${c.docsLink}" target="_blank" style="color:var(--accent)">자소서 문서</a>`:''}
+            ${student&&student.essayDoc?`<a href="${student.essayDoc}" target="_blank" style="color:var(--accent)">📝 자소서 첨삭</a>`:''}
+            ${c.docsLink?`<a href="${c.docsLink}" target="_blank" style="color:var(--accent)">수업 자료</a>`:''}
           </div>
         </div>
         <div class="class-actions">
@@ -772,7 +790,7 @@ function renderAdminStudents() {
     <button class="btn btn-primary btn-sm" onclick="openStudentModal()">+ 학생 등록</button>
   </div>
   <div class="table-wrap"><table>
-    <thead><tr><th>이름</th><th>이메일</th><th>목표 학교</th><th>담당 선생님</th><th>총 수업</th><th>면접 횟수</th></tr></thead>
+    <thead><tr><th>이름</th><th>이메일</th><th>목표 학교</th><th>담당 선생님</th><th>자소서</th><th>총 수업</th><th>면접</th><th></th></tr></thead>
     <tbody>`;
   STUDENTS.forEach(s => {
     const t = getTeacher(s.teacherId);
@@ -782,9 +800,11 @@ function renderAdminStudents() {
       <td style="font-weight:500;">${s.name}</td>
       <td style="color:var(--text2);font-size:12px;">${s.email}</td>
       <td>${s.school}</td>
-      <td>${t.name||'-'}</td>
+      <td>${t?t.name:'-'}</td>
+      <td>${s.essayDoc?`<a href="${s.essayDoc}" target="_blank" class="badge badge-blue">열기</a>`:'<span class="badge badge-gray">없음</span>'}</td>
       <td><span class="badge badge-blue">${total}회</span></td>
       <td><span class="badge badge-teal">${interviews}회</span></td>
+      <td><button class="btn btn-outline btn-sm" onclick="openStudentModal('${s.id}')">수정</button></td>
     </tr>`;
   });
   h += `</tbody></table></div>`;
@@ -1076,9 +1096,17 @@ function saveClass() {
   setTimeout(()=>adminTab('schedule'),0);
 }
 
-function openStudentModal() {
+function openStudentModal(studentId) {
+  editingStudentId = studentId || null;
   document.getElementById('s-teacher').innerHTML = TEACHERS.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
-  ['s-name','s-email','s-school'].forEach(id=>document.getElementById(id).value='');
+  const s = studentId ? STUDENTS.find(x=>x.id===studentId) : null;
+  document.getElementById('modal-student-title').textContent = s ? '학생 정보 수정' : '학생 등록';
+  document.getElementById('s-save-btn').textContent = s ? '저장' : '등록';
+  document.getElementById('s-name').value = s ? s.name : '';
+  document.getElementById('s-email').value = s ? s.email : '';
+  document.getElementById('s-school').value = s ? s.school : '';
+  document.getElementById('s-essay').value = s ? (s.essayDoc||'') : '';
+  if (s) document.getElementById('s-teacher').value = s.teacherId;
   document.getElementById('modal-student').style.display='flex';
 }
 
@@ -1087,12 +1115,20 @@ function saveStudent() {
   const email=document.getElementById('s-email').value.trim();
   const school=document.getElementById('s-school').value.trim();
   const teacherId=document.getElementById('s-teacher').value;
+  const essayDoc=document.getElementById('s-essay').value.trim();
   if (!name||!email) { alert('이름과 이메일을 입력하세요.'); return; }
   if (!email.includes('@')) { alert('올바른 이메일 형식을 입력하세요.'); return; }
-  if (STUDENTS.find(s => s.email === email)) { alert('이미 등록된 학생 이메일입니다.'); return; }
-  const studentData = {id:'s'+Date.now(), name, email, school, teacherId};
-  STUDENTS.push(studentData);
-  saveStudentToFirestore(studentData).catch(console.error);
+  if (essayDoc && !/^https?:\/\//.test(essayDoc)) { alert('자소서 문서는 http(s):// 로 시작하는 링크여야 합니다.'); return; }
+  if (editingStudentId) {
+    const s = STUDENTS.find(x=>x.id===editingStudentId);
+    if (s) { s.name=name; s.email=email; s.school=school; s.teacherId=teacherId; s.essayDoc=essayDoc; }
+    saveStudentToFirestore(s).catch(e=>{ console.error(e); alert('저장 중 오류가 발생했습니다.'); });
+  } else {
+    if (STUDENTS.find(s => s.email === email)) { alert('이미 등록된 학생 이메일입니다.'); return; }
+    const studentData = {id:'s'+Date.now(), name, email, school, teacherId, essayDoc};
+    STUDENTS.push(studentData);
+    saveStudentToFirestore(studentData).catch(e=>{ console.error(e); alert('저장 중 오류가 발생했습니다.'); });
+  }
   closeModal('modal-student');
   renderPage('admin');
   setTimeout(()=>adminTab('students'),0);
