@@ -276,6 +276,19 @@
   </div>
 </div>
 
+<!-- ══ 관리자 역할 선택 ══ -->
+<div class="modal-overlay" id="modal-role-select" style="display:none;z-index:300;">
+  <div class="modal" style="width:360px;text-align:center;">
+    <div style="font-size:28px;margin-bottom:12px;">👋</div>
+    <div class="modal-title" style="text-align:center;">어떤 역할로 입장하시겠습니까?</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:24px;">이 계정은 관리자이면서 선생님으로도 등록되어 있습니다.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="btn btn-primary" onclick="enterAsRole('admin')">⚙️ 관리자로 입장</button>
+      <button class="btn btn-outline" onclick="enterAsRole('teacher')">👨‍🏫 선생님으로 입장</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ 모달: 수업 등록/수정 ══ -->
 <div class="modal-overlay" id="modal-class" style="display:none">
   <div class="modal">
@@ -467,6 +480,22 @@ function initApp() {
     logout();
     return;
   }
+  // 관리자이면서 선생님으로도 등록된 경우 → 역할 선택
+  if (role === 'admin' && TEACHERS.find(t => t.email === currentUser.email)) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('modal-admin-pin').style.display = 'none';
+    document.getElementById('modal-role-select').style.display = 'flex';
+    return;
+  }
+  showApp(role);
+}
+
+function enterAsRole(role) {
+  document.getElementById('modal-role-select').style.display = 'none';
+  showApp(role);
+}
+
+function showApp(role) {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('modal-admin-pin').style.display = 'none';
   document.getElementById('app').style.display = 'block';
