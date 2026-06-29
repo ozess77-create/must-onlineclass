@@ -1094,7 +1094,7 @@ function saveFeedback() {
     saveFeedbackToFirestore(c.id, c.feedback, c.attendance).catch(console.error);
   }
   closeModal('modal-feedback');
-  renderPage(getRole());
+  renderPage(currentViewRole || getRole());
 }
 
 function addNotice() {
@@ -1112,7 +1112,16 @@ function renderPage(role) {
   const body=document.getElementById('app-body');
   if (role==='student') body.innerHTML=renderStudent();
   else if (role==='teacher') body.innerHTML=renderTeacher();
-  else { body.innerHTML=renderAdmin(); adminTab('schedule'); }
+  else if (role==='admin') { body.innerHTML=renderAdmin(); adminTab('schedule'); }
+  else {
+    // 미등록 이메일
+    body.innerHTML=`<div style="text-align:center;padding:80px 20px;">
+      <div style="font-size:48px;margin-bottom:16px;">🚫</div>
+      <div style="font-size:18px;font-weight:700;margin-bottom:8px;">접근 권한이 없습니다</div>
+      <p style="color:var(--text2);margin-bottom:24px;">이 계정(${currentUser.email})은 등록되지 않았습니다.<br>관리자에게 등록을 요청해주세요.</p>
+      <button class="btn btn-outline" onclick="logout()">로그아웃</button>
+    </div>`;
+  }
 }
 
 
