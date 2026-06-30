@@ -85,6 +85,32 @@
   .btn-outline:hover{border-color:var(--text3);}
   .btn-sm{padding:6px 12px;font-size:12px;border-radius:8px;}
 
+  /* ── D-day 배너 ── */
+  .dday-banner{border-radius:14px;padding:18px 22px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:16px;background:linear-gradient(135deg,#1A56DB 0%,#1445B8 100%);color:white;box-shadow:0 4px 16px rgba(26,86,219,0.25);}
+  .dday-banner.interview-banner{background:linear-gradient(135deg,#0891B2 0%,#0E7490 100%);box-shadow:0 4px 16px rgba(8,145,178,0.25);}
+  .dday-num{font-size:38px;font-weight:700;letter-spacing:-1px;line-height:1;}
+  .dday-label{font-size:12px;opacity:0.8;margin-top:2px;}
+  .dday-info{flex:1;}
+  .dday-title{font-size:15px;font-weight:700;margin-bottom:3px;}
+  .dday-sub{font-size:12px;opacity:0.85;}
+
+  /* ── 캘린더 ── */
+  .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .cal-nav{display:flex;gap:8px;align-items:center;}
+  .cal-nav button{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+  .cal-nav button:hover{background:var(--bg);}
+  .cal-month{font-size:16px;font-weight:700;letter-spacing:-0.3px;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+  .cal-dow{background:var(--surface2);text-align:center;padding:8px 4px;font-size:11px;font-weight:500;color:var(--text2);}
+  .cal-cell{background:var(--surface);min-height:80px;padding:6px 8px;position:relative;vertical-align:top;}
+  .cal-cell.other-month{background:#fafaf9;}
+  .cal-cell.today-cell{background:var(--accent-light);}
+  .cal-date{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:4px;}
+  .cal-date.today-date{background:var(--accent);color:white;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;}
+  .cal-dot{font-size:11px;line-height:1.4;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:1px 4px;border-radius:4px;margin-bottom:2px;cursor:default;}
+  .cal-dot-1on1{background:var(--accent-light);color:var(--accent);}
+  .cal-dot-interview{background:var(--teal-light);color:var(--teal);}
+
   /* ── 수업 유형 뱃지 ── */
   .type-1on1{background:var(--accent-light);color:var(--accent);}
   .type-interview{background:var(--teal-light);color:var(--teal);}
@@ -335,6 +361,14 @@
       <input type="url" id="tm-meet" placeholder="https://meet.google.com/xxx-xxxx-xxx">
       <div style="font-size:11px;color:var(--text3);margin-top:4px;">구글 미트 → 새 회의 → 나중에 시작할 회의 → 링크 복사</div>
     </div>
+    <div class="form-group">
+      <label class="form-label">출신·경력 (학생 프로필에 표시)</label>
+      <input type="text" id="tm-career" placeholder="서울대 의예과 · 영재고 합격 지도 5년">
+    </div>
+    <div class="form-group">
+      <label class="form-label">한 줄 소개</label>
+      <input type="text" id="tm-bio" placeholder="자소서·면접 전문, 서울대 의대 합격자 다수 배출">
+    </div>
 
     <div id="tm-status" style="display:none;margin-top:4px;font-size:12px;padding:8px 12px;border-radius:8px;"></div>
 
@@ -556,6 +590,29 @@ function renderStudent() {
   let h = `<div class="page-title">안녕하세요, ${esc(student.name)} 학생!</div>
   <div class="page-sub">목표: ${esc(student.school)} · 담당: ${esc(teacher.name||'-')}</div>`;
 
+  // D-day 배너 (오늘 수업 없고 예정 수업 있을 때)
+  if (todayClasses.length === 0 && upcoming.length > 0) {
+    const next = upcoming[0];
+    const isInterview = next.type === 'interview';
+    const nextDate = new Date(next.datetime);
+    const today0 = new Date(); today0.setHours(0,0,0,0);
+    const diff = Math.ceil((nextDate - today0) / 86400000);
+    const ddayText = diff === 0 ? 'D-Day' : diff === 1 ? 'D-1' : `D-${diff}`;
+    const panelNames = isInterview
+      ? next.teacherIds.map(id=>esc(getTeacher(id).name)).join(', ')
+      : esc(teacher.name||'-');
+    h += `<div class="dday-banner ${isInterview?'interview-banner':''} section-gap">
+      <div class="dday-info">
+        <div class="dday-title">${isInterview?'3대1 모의면접':'1대1 수업'} · ${esc(panelNames)}</div>
+        <div class="dday-sub">${fmtFull(next.datetime)}</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="dday-num">${ddayText}</div>
+        <div class="dday-label">다음 수업</div>
+      </div>
+    </div>`;
+  }
+
   // 자소서 첨삭 문서
   if (student.essayDoc) {
     h += `<div class="card section-gap" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
@@ -721,22 +778,35 @@ function renderTeacher() {
 //  관리자 화면
 // ══════════════════════════════════════════
 function renderAdmin() {
+  const now = new Date();
   const todayAll = CLASSES.filter(c=>isToday(c.datetime));
   const monthAll = CLASSES.filter(c=>{
-    const d = new Date(c.datetime), n = new Date();
-    return d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear();
+    const d = new Date(c.datetime);
+    return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
   });
+  // 이번 주 (월~일)
+  const dow = now.getDay(); // 0=일
+  const monDiff = dow===0 ? -6 : 1-dow;
+  const weekStart = new Date(now); weekStart.setHours(0,0,0,0); weekStart.setDate(now.getDate()+monDiff);
+  const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate()+6); weekEnd.setHours(23,59,59,999);
+  const weekAll = CLASSES.filter(c=>{ const d=new Date(c.datetime); return d>=weekStart&&d<=weekEnd; });
+  // 이번 달 출석률
+  const monthPast = monthAll.filter(c=>isPast(c.datetime)&&c.attendance);
+  const attendRate = monthPast.length>0
+    ? Math.round(monthPast.filter(c=>c.attendance==='출석').length/monthPast.length*100)
+    : null;
   return `
   <div class="page-title">관리자 대시보드</div>
   <div class="page-sub">MUST 특목입시센터 · 온라인 수업 전체 현황</div>
   <div class="grid4 section-gap">
-    <div class="stat-card"><div class="stat-label">등록 학생</div><div class="stat-value" style="color:var(--accent)">${STUDENTS.length}</div><div class="stat-sub">명</div></div>
-    <div class="stat-card"><div class="stat-label">오늘 전체</div><div class="stat-value" style="color:var(--green)">${todayAll.length}</div><div class="stat-sub">건</div></div>
-    <div class="stat-card"><div class="stat-label">오늘 모의면접</div><div class="stat-value" style="color:var(--teal)">${todayAll.filter(c=>c.type==='interview').length}</div><div class="stat-sub">건</div></div>
-    <div class="stat-card"><div class="stat-label">이번 달</div><div class="stat-value">${monthAll.length}</div><div class="stat-sub">건</div></div>
+    <div class="stat-card"><div class="stat-label">등록 학생</div><div class="stat-value" style="color:var(--accent)">${STUDENTS.length}</div><div class="stat-sub">명 / 선생님 ${TEACHERS.length}명</div></div>
+    <div class="stat-card"><div class="stat-label">이번 주 수업</div><div class="stat-value" style="color:var(--green)">${weekAll.length}</div><div class="stat-sub">건 (면접 ${weekAll.filter(c=>c.type==='interview').length}건)</div></div>
+    <div class="stat-card"><div class="stat-label">이번 달 수업</div><div class="stat-value">${monthAll.length}</div><div class="stat-sub">건</div></div>
+    <div class="stat-card"><div class="stat-label">이달 출석률</div><div class="stat-value" style="color:${attendRate===null?'var(--text3)':attendRate>=80?'var(--green)':'var(--amber)'}">${attendRate===null?'-':attendRate+'%'}</div><div class="stat-sub">${monthPast.length}건 기록됨</div></div>
   </div>
   <div class="tab-bar">
-    <button class="tab active" id="tab-schedule" onclick="adminTab('schedule')">수업 일정</button>
+    <button class="tab active" id="tab-calendar" onclick="adminTab('calendar')">📅 캘린더</button>
+    <button class="tab" id="tab-schedule" onclick="adminTab('schedule')">수업 목록</button>
     <button class="tab" id="tab-students" onclick="adminTab('students')">학생 관리</button>
     <button class="tab" id="tab-teachers" onclick="adminTab('teachers')">선생님 관리</button>
     <button class="tab" id="tab-notices" onclick="adminTab('notices')">공지사항</button>
@@ -745,15 +815,80 @@ function renderAdmin() {
   <div id="admin-content"></div>`;
 }
 
+let calendarYear = new Date().getFullYear();
+let calendarMonth = new Date().getMonth();
+
 function adminTab(tab) {
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
   const c = document.getElementById('admin-content');
-  if (tab==='schedule') c.innerHTML = renderAdminSchedule();
+  if (tab==='calendar') c.innerHTML = renderAdminCalendar();
+  else if (tab==='schedule') c.innerHTML = renderAdminSchedule();
   else if (tab==='students') c.innerHTML = renderAdminStudents();
   else if (tab==='teachers') c.innerHTML = renderAdminTeachers();
   else if (tab==='notices') c.innerHTML = renderAdminNotices();
   else c.innerHTML = renderAdminAdmins();
+}
+
+function calNav(delta) {
+  calendarMonth += delta;
+  if (calendarMonth > 11) { calendarMonth=0; calendarYear++; }
+  if (calendarMonth < 0) { calendarMonth=11; calendarYear--; }
+  document.getElementById('admin-content').innerHTML = renderAdminCalendar();
+}
+
+function renderAdminCalendar() {
+  const y = calendarYear, m = calendarMonth;
+  const firstDay = new Date(y, m, 1).getDay(); // 0=일
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const today = new Date();
+  const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const dowLabels = ['일','월','화','수','목','금','토'];
+
+  let h = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <div class="cal-nav">
+      <button onclick="calNav(-1)">◀</button>
+      <span class="cal-month">${y}년 ${monthNames[m]}</span>
+      <button onclick="calNav(1)">▶</button>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="openClassModal()">+ 수업 등록</button>
+  </div>
+  <div class="cal-grid">`;
+
+  // 요일 헤더
+  dowLabels.forEach(d => h += `<div class="cal-dow" style="${d==='일'?'color:var(--red)':d==='토'?'color:var(--accent)':''}">${d}</div>`);
+
+  // 이전 달 빈 칸
+  for (let i=0; i<firstDay; i++) h += `<div class="cal-cell other-month"></div>`;
+
+  // 날짜 채우기
+  for (let day=1; day<=daysInMonth; day++) {
+    const isToday2 = y===today.getFullYear()&&m===today.getMonth()&&day===today.getDate();
+    const dayClasses = CLASSES.filter(c=>{
+      const d=new Date(c.datetime);
+      return d.getFullYear()===y&&d.getMonth()===m&&d.getDate()===day;
+    }).sort((a,b)=>new Date(a.datetime)-new Date(b.datetime));
+    h += `<div class="cal-cell${isToday2?' today-cell':''}">
+      <div class="cal-date${isToday2?' today-date':''}">${day}</div>`;
+    dayClasses.forEach(c=>{
+      const s=getStudent(c.studentId);
+      const label=`${fmtDate(c.datetime).split(' ')[1]||''} ${esc(s.name)}`;
+      h += `<div class="cal-dot ${c.type==='interview'?'cal-dot-interview':'cal-dot-1on1'}" title="${esc(s.name)} ${fmtDate(c.datetime)}">${label}</div>`;
+    });
+    h += `</div>`;
+  }
+
+  // 나머지 빈 칸 (6주 채우기)
+  const total = firstDay + daysInMonth;
+  const trailing = total%7===0 ? 0 : 7-(total%7);
+  for (let i=0; i<trailing; i++) h += `<div class="cal-cell other-month"></div>`;
+
+  h += `</div>
+  <div style="display:flex;gap:12px;margin-top:12px;font-size:12px;color:var(--text2);">
+    <span><span class="badge cal-dot-1on1" style="border-radius:4px;margin-right:4px;">　</span>1대1 수업</span>
+    <span><span class="badge cal-dot-interview" style="border-radius:4px;margin-right:4px;">　</span>3대1 면접</span>
+  </div>`;
+  return h;
 }
 
 function renderAdminSchedule() {
@@ -818,7 +953,7 @@ function renderAdminTeachers() {
     <button class="btn btn-primary btn-sm" onclick="openTeacherModal()">+ 선생님 등록</button>
   </div>
   <div class="table-wrap"><table>
-    <thead><tr><th>이름</th><th>구글 계정 (이메일)</th><th>수업 미트 링크</th><th>담당 학생</th><th>이번 달 수업</th><th></th></tr></thead>
+    <thead><tr><th>이름</th><th>구글 계정 (이메일)</th><th>경력·소개</th><th>미트</th><th>학생</th><th>이번 달</th><th></th></tr></thead>
     <tbody>`;
   TEACHERS.forEach(t => {
     const myStudents = STUDENTS.filter(s=>s.teacherId===t.id).length;
@@ -833,6 +968,10 @@ function renderAdminTeachers() {
       <td style="font-size:12px;">
         <div style="color:var(--text2);">${t.email}</div>
         <span class="badge badge-green" style="margin-top:3px;display:inline-block;">연동됨</span>
+      </td>
+      <td style="font-size:12px;">
+        ${t.career?`<div style="font-weight:500;color:var(--text);margin-bottom:2px;">${esc(t.career)}</div>`:''}
+        ${t.bio?`<div style="color:var(--text2);">${esc(t.bio)}</div>`:'<span style="color:var(--text3);">-</span>'}
       </td>
       <td>${t.meetLink
         ? `<a href="${esc(t.meetLink)}" target="_blank" class="badge badge-green" style="text-decoration:none;">링크 확인</a>`
@@ -860,7 +999,9 @@ function openTeacherModal(teacherId) {
   document.getElementById('modal-teacher-title').textContent = teacherId ? '선생님 정보 수정' : '선생님 등록';
   document.getElementById('tm-name').value = t ? t.name : '';
   document.getElementById('tm-email').value = t ? t.email : '';
-  document.getElementById('tm-meet').value = t ? t.meetLink : '';
+  document.getElementById('tm-meet').value = t ? (t.meetLink||'') : '';
+  document.getElementById('tm-career').value = t ? (t.career||'') : '';
+  document.getElementById('tm-bio').value = t ? (t.bio||'') : '';
   document.getElementById('modal-teacher').style.display = 'flex';
 }
 
@@ -868,6 +1009,8 @@ function saveTeacher() {
   const name = document.getElementById('tm-name').value.trim();
   const email = document.getElementById('tm-email').value.trim();
   const meetLink = document.getElementById('tm-meet').value.trim();
+  const career = document.getElementById('tm-career').value.trim();
+  const bio = document.getElementById('tm-bio').value.trim();
   const statusEl = document.getElementById('tm-status');
 
   if (!name || !email) {
@@ -887,7 +1030,7 @@ function saveTeacher() {
 
   if (editingTeacherId) {
     const t = TEACHERS.find(x=>x.id===editingTeacherId);
-    if (t) { t.name=name; t.email=email; t.meetLink=meetLink; }
+    if (t) { t.name=name; t.email=email; t.meetLink=meetLink; t.career=career; t.bio=bio; }
     statusEl.style.display = 'block';
     statusEl.style.background = 'var(--green-light)';
     statusEl.style.color = 'var(--green)';
@@ -901,7 +1044,7 @@ function saveTeacher() {
       statusEl.textContent = '이미 등록된 구글 계정입니다.';
       return;
     }
-    const teacherData = {id:'t'+Date.now(), name, email, meetLink};
+    const teacherData = {id:'t'+Date.now(), name, email, meetLink, career, bio};
     TEACHERS.push(teacherData);
     saveTeacherToFirestore(teacherData).catch(console.error);
     statusEl.style.display = 'block';
@@ -945,7 +1088,7 @@ async function deleteClass(classId) {
   await deleteDoc(doc(window._db, 'classes', classId));
   CLASSES = CLASSES.filter(x=>x.id!==classId);
   renderPage('admin');
-  setTimeout(()=>adminTab('schedule'),0);
+  setTimeout(()=>adminTab('calendar'),0);
 }
 
 function deleteTeacher(teacherId) {
@@ -1094,7 +1237,7 @@ function saveClass() {
   saveClassToFirestore(classData).catch(e=>{ console.error(e); alert('저장 중 오류가 발생했습니다. 네트워크 연결을 확인해주세요.'); });
   closeModal('modal-class');
   renderPage('admin');
-  setTimeout(()=>adminTab('schedule'),0);
+  setTimeout(()=>adminTab('calendar'),0);
 }
 
 function openStudentModal(studentId) {
@@ -1173,7 +1316,7 @@ function renderPage(role) {
   const body=document.getElementById('app-body');
   if (role==='student') body.innerHTML=renderStudent();
   else if (role==='teacher') body.innerHTML=renderTeacher();
-  else if (role==='admin') { body.innerHTML=renderAdmin(); adminTab('schedule'); }
+  else if (role==='admin') { body.innerHTML=renderAdmin(); adminTab('calendar'); }
   else {
     // 미등록 이메일
     body.innerHTML=`<div style="text-align:center;padding:80px 20px;">
