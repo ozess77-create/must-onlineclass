@@ -594,16 +594,16 @@ function renderStudent() {
   if (todayClasses.length === 0 && upcoming.length > 0) {
     const next = upcoming[0];
     const isInterview = next.type === 'interview';
-    const nextDate = new Date(next.datetime);
+    const nextDate0 = new Date(next.datetime); nextDate0.setHours(0,0,0,0);
     const today0 = new Date(); today0.setHours(0,0,0,0);
-    const diff = Math.ceil((nextDate - today0) / 86400000);
-    const ddayText = diff === 0 ? 'D-Day' : diff === 1 ? 'D-1' : `D-${diff}`;
+    const diff = Math.round((nextDate0 - today0) / 86400000);
+    const ddayText = diff === 0 ? 'D-Day' : `D-${diff}`;
     const panelNames = isInterview
-      ? next.teacherIds.map(id=>esc(getTeacher(id).name)).join(', ')
+      ? (next.teacherIds||[]).map(id=>esc(getTeacher(id).name)).join(', ')
       : esc(teacher.name||'-');
     h += `<div class="dday-banner ${isInterview?'interview-banner':''} section-gap">
       <div class="dday-info">
-        <div class="dday-title">${isInterview?'3대1 모의면접':'1대1 수업'} · ${esc(panelNames)}</div>
+        <div class="dday-title">${isInterview?'3대1 모의면접':'1대1 수업'} · ${panelNames}</div>
         <div class="dday-sub">${fmtFull(next.datetime)}</div>
       </div>
       <div style="text-align:right;">
@@ -629,7 +629,7 @@ function renderStudent() {
     todayClasses.forEach(c => {
       const isInterview = c.type === 'interview';
       const hlClass = isInterview ? 'highlight-interview' : 'highlight-1on1';
-      const panelNames = isInterview ? c.teacherIds.map(id=>esc(getTeacher(id).name)).join(', ') : esc(teacher.name||'-');
+      const panelNames = isInterview ? (c.teacherIds||[]).map(id=>esc(getTeacher(id).name)).join(', ') : esc(teacher.name||'-');
       const typeLabel = isInterview ? '3대1 모의면접' : '1대1 수업';
       h += `<div class="today-highlight ${hlClass} section-gap">
         <div class="today-info">
@@ -651,7 +651,7 @@ function renderStudent() {
     h += `<div class="card-title" style="margin-bottom:10px;">예정 수업</div>`;
     upcoming.forEach(c => {
       const isInterview = c.type==='interview';
-      const panelNames = isInterview ? c.teacherIds.map(id=>esc(getTeacher(id).name)).join(', ') : esc(getTeacher(c.teacherIds&&c.teacherIds[0]).name);
+      const panelNames = isInterview ? (c.teacherIds||[]).map(id=>esc(getTeacher(id).name)).join(', ') : esc(getTeacher(c.teacherIds&&c.teacherIds[0]).name);
       h += `<div class="class-card">
         <div class="class-info">
           <div class="class-time">${fmtFull(c.datetime)} ${typeBadge(c.type)}</div>
@@ -669,7 +669,7 @@ function renderStudent() {
     h += `<div class="card-title" style="margin:20px 0 10px;">지난 수업 & 피드백</div>`;
     past.forEach(c => {
       const isInterview = c.type==='interview';
-      const panelNames = isInterview ? c.teacherIds.map(id=>esc(getTeacher(id).name)).join(', ') : esc(getTeacher(c.teacherIds&&c.teacherIds[0]).name);
+      const panelNames = isInterview ? (c.teacherIds||[]).map(id=>esc(getTeacher(id).name)).join(', ') : esc(getTeacher(c.teacherIds&&c.teacherIds[0]).name);
       h += `<div class="class-card">
         <div class="class-info">
           <div class="class-time">${fmtFull(c.datetime)} ${typeBadge(c.type)}</div>
@@ -725,7 +725,7 @@ function renderTeacher() {
         <div class="class-info">
           <div class="class-time">${fmtDate(c.datetime)} · ${esc(student.name)} ${typeBadge(c.type)}</div>
           <div class="class-meta"><span>${esc(student.school)}</span>
-            ${isInterview?`<span>면접관: ${c.teacherIds.map(id=>esc(getTeacher(id).name)).join(', ')}</span>`:''}
+            ${isInterview?`<span>면접관: ${(c.teacherIds||[]).map(id=>esc(getTeacher(id).name)).join(', ')}</span>`:''}
             ${student&&student.essayDoc?`<a href="${esc(student.essayDoc)}" target="_blank" style="color:var(--accent)">📝 자소서 첨삭</a>`:''}
             ${c.docsLink?`<a href="${esc(c.docsLink)}" target="_blank" style="color:var(--accent)">수업 자료</a>`:''}
           </div>
